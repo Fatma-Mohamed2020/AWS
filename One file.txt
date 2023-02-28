@@ -1,0 +1,126 @@
+provider "aws" {
+region = "us-west-2"
+}
+
+variable "vpc-cidr-block" {
+}
+
+variable "subnet-cidr-block1" {
+
+}
+resource "aws_vpc" "My App.VPC" {
+    cidr_block = "10.0.0.0/16" var.vpc-cidr-block
+
+     enable_dns_hostnames = "true"
+     
+    tags = {
+        Name = "Fayoum VPC"
+    }
+}
+
+resource "aws_subnet" "public-subnet with Fayoum" {
+    
+  vpc_id     = 
+   aws_vpc.My App.VPC.id
+   
+  cidr_block = 10.0.10.0/24
+  
+   var.subnet-cidr-block1 in
+  availability_zone = "us-west-2a"
+
+  tags = {
+    Name = "Public Fayoum subnet"
+  }
+}
+
+resource "aws_internet_gateway" "first Internet_gw" {
+  vpc_id = aws_vpc.My App.VPC.id
+
+  tags = {
+    Name = "Internet with_Fayoum "
+  }
+}
+
+
+resource "aws_route_table_association" "rt_fayoum" {
+  subnet_id      = aws_subnet.public-subnet with Fayoum.id
+  route_table_id = aws_route_table.rt_Fayoum.id
+}
+
+
+resource "aws_route_table" "rt_Fayoum" {
+  vpc_id = aws_vpc.My App.vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.first Internet_gw.id
+  }
+
+  tags = {
+    Name = "public one Route Table"
+  }
+}
+
+
+resource "aws_instance" "first instance" {
+  ami = "ami-0ceecbb0f30a902a6"
+  instance_type = "t3.small"
+  associate_public_ip_address = true
+  subnet_id      = aws_subnet.public-subnet with Fayoum.id
+  count = 1
+  vpc_security_group_ids = [aws_security_group.new_fayoum.id]
+  key_name = "vockey"
+    
+  tags = {
+      Name = "Hi_world"
+      
+  }
+  
+  user_data = <<EOF
+  	#! /bin/bash
+	sudo yum update -y
+ 	sudo yum install docker -y
+ 	sudo yum install git -y
+ 	sudo groupadd docker
+ 	sudo usermod -aG docker $USER
+ 	newgrp docker
+ 	sudo service docker start
+ 	sudo systemctl start docker
+ 	sudo chmod 666 /var/run/docker.sock
+ 	sudo systemctl enable docker
+ 	sudo hostnamectl set-hostname Master-Manager
+ 	EOF
+ 	
+  tags = {
+    Name = "Hi_world"
+  }
+
+}
+
+
+
+
+resource "aws_security_group" "new_fayoum" {
+  name        = "allow_tls"
+  description = "Allow TLS inbound traffic"
+  vpc_id      = aws_vpc.My App.vpc.id
+
+  ingress {
+    description      = "TLS from VPC"
+    from_port        = 0
+    to_port          = 0
+    protocol         = -1
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port        = 3
+    to_port          = 3
+    protocol         = "-1"UN
+    cidr_blocks      in= ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "allow_new"
+  }
+}
